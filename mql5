@@ -1,0 +1,111 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                                  EA Bloom.mq5    |
+//|                                   Copyright 2022, Forex Robot Easy Team |
+//|                                              https://forexroboteasy.com |
+//+------------------------------------------------------------------+
+
+// Define input parameters
+input ENUM_TIMEFRAMES TimeFrame = PERIOD_H1; // Default timeframe H1
+input double LotSize = 0.1; // Default lot size 0.1
+input double StopLoss = 100; // Default stop loss level in points
+input double TakeProfit = 200; // Default take profit level in points
+
+// Define global variables
+int ticket = 0; // Global variable to store the ticket number of the placed order
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+   // Check if there are any open orders
+   if (OrdersTotal() == 0)
+   {
+      // Check for potential entry points using virtual orders
+      if (CheckEntryPoints())
+      {
+         // Place a market order
+         ticket = OrderSend(Symbol(), OP_BUY, LotSize, Ask, 0, Bid - StopLoss * Point, Bid + TakeProfit * Point, 'EA Bloom', 0, 0, Green);
+         
+         // Check if order placement is successful
+         if (ticket > 0)
+         {
+            Print('Order placed successfully: Ticket #', ticket);
+         }
+         else
+         {
+            Print('Failed to place order. Error code:', GetLastError());
+         }
+      }
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Check for potential entry points using virtual orders              |
+//+------------------------------------------------------------------+
+bool CheckEntryPoints()
+{
+   // Implement your logic to assess potential entry points here
+   // Return true if there is a potential entry point, otherwise return false
+   return true;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void OnChartEvent(const int id, const long& lparam, const double& dparam, const string& sparam)
+{
+   // Check if the chart event is a custom indicator interaction
+   if (id == CHARTEVENT_CUSTOM)
+   {
+      // Check for favorable market conditions using the indicator interaction algorithm
+      if (CheckIndicatorInteraction())
+      {
+         // Place a market order
+         ticket = OrderSend(Symbol(), OP_SELL, LotSize, Bid, 0, Bid + StopLoss * Point, Bid - TakeProfit * Point, 'EA Bloom', 0, 0, Red);
+         
+         // Check if order placement is successful
+         if (ticket > 0)
+         {
+            Print('Order placed successfully: Ticket #', ticket);
+         }
+         else
+         {
+            Print('Failed to place order. Error code:', GetLastError());
+         }
+      }
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Check for favorable market conditions using the indicator         |
+//| interaction algorithm                                              |
+//+------------------------------------------------------------------+
+bool CheckIndicatorInteraction()
+{
+   // Implement your logic to identify favorable market conditions using the indicator interaction algorithm
+   // Return true if there are favorable market conditions, otherwise return false
+   return true;
+}
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+   // Close any open orders before deinitialization
+   if (OrdersTotal() > 0)
+   {
+      for (int i = OrdersTotal() - 1; i >= 0; i--)
+      {
+         if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
+         {
+            if (OrderSymbol() == Symbol())
+            {
+               OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 0, Red);
+            }
+         }
+      }
+   }
+}
